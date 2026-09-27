@@ -28,20 +28,25 @@
 - [x] Orange/Dark futuristic UI visual theme established
 - [x] Configuration systems initialized (`params.yaml`, `configs/config.yaml`)
 - [x] Dependency management defined (`requirements.txt`, `requirements-dev.txt`, `pyproject.toml`)
-- [x] DVC pipeline blueprint initialized (`dvc.yaml`)
+- [x] DVC initialized and pipeline blueprint created (`dvc.yaml`)
 - [x] Developer workflows and linting automated (`Makefile`, `ruff`, `black`, `pytest`)
 - [x] Comprehensive documentation framework created (`docs/`, `data/README.md`)
 - [x] Open-source and academic governance added (`LICENSE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`)
 
-### In Progress
-- [~] Phase 1 preparation: dataset schema formalization and approval criteria
-- [~] Preprocessing and feature engineering interface design
-
-### Next Immediate Actions (Phase 1 Kickoff)
-- [ ] Dataset sourcing and academic approval
-- [ ] DVC remote and local cache initialization
+### Phase 1 — Dataset Specification & Approval (In Progress)
+- [x] Dataset specification documentation (`docs/dataset/DATASET_SPECIFICATION.md`)
+- [x] Dataset collection methodology (`docs/dataset/DATA_COLLECTION.md`)
+- [x] Labeling methodology and rubric (`docs/dataset/LABELING_GUIDELINES.md`)
+- [x] Dataset approval dossier and checklist (`docs/dataset/DATASET_APPROVAL.md`)
+- [ ] Faculty approval of dataset dossier (Pending Review)
+- [ ] Final dataset acquisition from approved sources
+- [ ] Candidate response collection / creation
+- [ ] Human / rubric-based annotation
+- [ ] Quality-control review and audit
+- [ ] Final labeled dataset assembly
+- [ ] DVC dataset versioning (`data/raw/interview_data.parquet.dvc`)
 - [ ] Exploratory Data Analysis (`notebooks/01_data_exploration.ipynb`)
 - [ ] Data preprocessing and cleaning pipeline (`src/data/preprocess.py`)
-- [ ] TF-IDF / feature extraction baseline (`src/features/build_features.py`)
-- [ ] Baseline model training with MLflow tracking (`src/models/train_baseline.py`)
-- [ ] Initial evaluation and metrics calculation (`src/evaluation/evaluate.py`)
+- [ ] Feature engineering pipeline (`src/features/build_features.py`)
+- [ ] Baseline model training (`src/models/train_baseline.py`)
+- [ ] MLflow experimentation and tracking (`mlruns/`)

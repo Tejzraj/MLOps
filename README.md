@@ -62,10 +62,32 @@ Phase 1: Development & Reproduce     [░░░░░░░░░░░░░░
 Phase 2: Serving & CI/CD Pipeline    [░░░░░░░░░░░░░░░░░░░░]   0% (Planned)
 Phase 3: Observability & Governance  [░░░░░░░░░░░░░░░░░░░░]   0% (Planned)
 ========================================================================================
-CURRENT ACTIVE PHASE : PHASE 0 — REPOSITORY & MLOPS ARCHITECTURE
-NEXT MILESTONE       : PHASE 1 — DATASET SOURCING & DVC CACHE INITIALIZATION
+CURRENT ACTIVE PHASE : PHASE 1 — DATASET SPECIFICATION & ACADEMIC DEFENSE
+NEXT MILESTONE       : FACULTY APPROVAL & DVC DATASET INGESTION
 ========================================================================================
 ```
+
+---
+
+## Phase 1 Lifecycle & Dataset Execution Status
+
+```text
+Phase 1 Execution Flow:
+Dataset Specification ──► Dataset Acquisition ──► EDA ──► Feature Engineering ──► Baseline Model ──► MLflow Tracking
+    [IN PROGRESS]             [NOT STARTED]     [NOT STARTED]    [NOT STARTED]        [NOT STARTED]       [NOT STARTED]
+```
+
+| Lifecycle Component | Status | Artifact / Documentation Reference |
+| :--- | :---: | :--- |
+| **Dataset Specification** | `[~] IN PROGRESS` | [`docs/dataset/DATASET_SPECIFICATION.md`](docs/dataset/DATASET_SPECIFICATION.md) |
+| **Labeling Guidelines & Rubric** | `[~] IN PROGRESS` | [`docs/dataset/LABELING_GUIDELINES.md`](docs/dataset/LABELING_GUIDELINES.md) |
+| **Data Collection Protocol** | `[~] IN PROGRESS` | [`docs/dataset/DATA_COLLECTION.md`](docs/dataset/DATA_COLLECTION.md) |
+| **Faculty Approval Dossier** | `[ ] PENDING REVIEW` | [`docs/dataset/DATASET_APPROVAL.md`](docs/dataset/DATASET_APPROVAL.md) |
+| **Dataset Acquisition & DVC Tracking** | `[ ] NOT STARTED` | Planned under `data/raw/` tracked via DVC |
+| **Exploratory Data Analysis (EDA)** | `[ ] NOT STARTED` | [`notebooks/01_data_exploration.ipynb`](notebooks/01_data_exploration.ipynb) |
+| **Feature Engineering Pipeline** | `[ ] NOT STARTED` | [`notebooks/03_feature_engineering.ipynb`](notebooks/03_feature_engineering.ipynb), `src/features/` |
+| **Baseline Model Training** | `[ ] NOT STARTED` | [`notebooks/04_baseline_models.ipynb`](notebooks/04_baseline_models.ipynb), `src/models/` |
+| **MLflow Experiment Tracking** | `[ ] NOT STARTED` | Local & remote tracking configured in `mlruns/` |
 
 ---
 
@@ -199,13 +221,17 @@ Foundation   Dev & Repro  Production   Observability Continuous ML Governance
 <details open>
 <summary><strong>Phase 1 — Development & Reproducibility (CURRENT FOCUS)</strong></summary>
 
-- [ ] Dataset source identified & academic approval documented
-- [ ] Raw dataset downloaded into `data/raw/` (ignored by Git)
-- [ ] DVC initialized and remote cache configured
+- [x] Dataset specification, 19-field schema, and multi-dimensional rubric authored
+- [x] Faculty review dossier prepared (`docs/dataset/DATASET_APPROVAL.md`)
+- [ ] Faculty committee review and formal approval (Pending)
+- [x] DVC initialized with pipeline blueprint (`dvc.yaml`)
+- [ ] Question-bank acquisition & candidate response collection/creation
+- [ ] Human / rubric-based annotation and team dual-audit validation
+- [ ] DVC raw dataset versioning (`data/raw/interview_data.parquet.dvc`)
 - [ ] Data quality checks and schema verification implemented
 - [ ] Exploratory Data Analysis completed (`notebooks/01_data_exploration.ipynb`)
 - [ ] Data preprocessing and cleaning pipeline implemented (`src/data/`)
-- [ ] Stratified train / validation / test partitioning executed
+- [ ] Stratified grouped train / validation / test partitioning executed
 - [ ] Feature engineering pipeline (TF-IDF, linguistic metrics) constructed (`src/features/`)
 - [ ] Baseline Logistic Regression model trained and logged (`src/models/`)
 - [ ] Comparison Random Forest model trained and evaluated
