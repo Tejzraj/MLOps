@@ -1,0 +1,76 @@
+# ==============================================================================
+# DVC Pipeline Specification
+# AI-Based Interview Preparation Assistant
+# Phase 1 Pipeline: Reproducible Data Processing & Baseline Modeling
+# ==============================================================================
+
+stages:
+  load_data:
+    cmd: python src/data/load_data.py
+    deps:
+      - data/raw/interview_data.csv
+    params:
+      - data.raw_data_path
+    outs:
+      - data/interim/loaded_data.parquet:
+          cache: true
+
+  preprocess:
+    cmd: python src/data/preprocess.py
+    deps:
+      - data/interim/loaded_data.parquet
+      - src/data/preprocess.py
+    params:
+      - split.test_size
+      - split.validation_size
+      - split.random_state
+    outs:
+      - data/processed/train.parquet:
+          cache: true
+      - data/processed/val.parquet:
+          cache: true
+      - data/processed/test.parquet:
+          cache: true
+
+  feature_engineering:
+    cmd: python src/features/build_features.py
+    deps:
+      - data/processed/train.parquet
+      - data/processed/val.parquet
+      - data/processed/test.parquet
+      - src/features/build_features.py
+    params:
+      - features.tfidf.max_features
+      - features.tfidf.ngram_range
+    outs:
+      - models/tfidf_vectorizer.joblib:
+          cache: true
+
+  train_baseline:
+    cmd: python src/models/train_baseline.py
+    deps:
+      - data/processed/train.parquet
+      - models/tfidf_vectorizer.joblib
+      - src/models/train_baseline.py
+    params:
+      - model.baseline.algorithm
+      - model.baseline.c_param
+      - model.baseline.random_state
+    outs:
+      - models/baseline_model.joblib:
+          cache: true
+
+  evaluate:
+    cmd: python src/evaluation/evaluate.py
+    deps:
+      - data/processed/test.parquet
+      - models/baseline_model.joblib
+      - src/evaluation/evaluate.py
+    params:
+      - evaluation.primary_metric
+    metrics:
+      - reports/metrics.json:
+          cache: false
+    plots:
+      - reports/figures/confusion_matrix.png:
+          cache: false

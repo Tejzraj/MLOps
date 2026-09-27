@@ -1,0 +1,26 @@
+# Set default behavior to automatically normalize line endings to LF
+* text=auto eol=lf
+
+# Force specific files to LF
+*.py text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+Makefile text eol=lf
+
+# Jupyter Notebook diff and merge
+*.ipynb text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.pkl binary
+*.joblib binary
+*.onnx binary

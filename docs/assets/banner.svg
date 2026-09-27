@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080B10" />
+      <stop offset="50%" stop-color="#0D1117" />
+      <stop offset="100%" stop-color="#161B22" />
+    </linearGradient>
+
+    <!-- Orange Neon Gradients -->
+    <linearGradient id="orangeGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF5500" />
+      <stop offset="50%" stop-color="#FF8C00" />
+      <stop offset="100%" stop-color="#FFA726" />
+    </linearGradient>
+
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1F242C" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#11151C" stop-opacity="0.9" />
+    </linearGradient>
+
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF6B00" stop-opacity="0.1" />
+      <stop offset="50%" stop-color="#FF8C00" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#FF6B00" stop-opacity="0.1" />
+    </linearGradient>
+
+    <!-- Filters for Glow Effects -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Subtle CSS Keyframe Pulse -->
+    <style>
+      @keyframes pulseGlow {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 1; }
+      }
+      @keyframes dashAnim {
+        to { stroke-dashoffset: -40; }
+      }
+      .node-pulse {
+        animation: pulseGlow 3s ease-in-out infinite;
+      }
+      .flow-stream {
+        stroke-dasharray: 6 6;
+        animation: dashAnim 2s linear infinite;
+      }
+    </style>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1200" height="360" rx="16" fill="url(#bgGrad)" stroke="#30363D" stroke-width="1.5" />
+
+  <!-- Technical Circuit Grid Lines -->
+  <g opacity="0.12" stroke="#FF8C00" stroke-width="1">
+    <line x1="0" y1="60" x2="1200" y2="60" />
+    <line x1="0" y1="120" x2="1200" y2="120" />
+    <line x1="0" y1="180" x2="1200" y2="180" />
+    <line x1="0" y1="240" x2="1200" y2="240" />
+    <line x1="0" y1="300" x2="1200" y2="300" />
+    <line x1="150" y1="0" x2="150" y2="360" />
+    <line x1="300" y1="0" x2="300" y2="360" />
+    <line x1="450" y1="0" x2="450" y2="360" />
+    <line x1="600" y1="0" x2="600" y2="360" />
+    <line x1="750" y1="0" x2="750" y2="360" />
+    <line x1="900" y1="0" x2="900" y2="360" />
+    <line x1="1050" y1="0" x2="1050" y2="360" />
+  </g>
+
+  <!-- Top Accent Glowing Strip -->
+  <path d="M 0 16 C 0 7.16 7.16 0 16 0 L 1184 0 C 1192.84 0 1200 7.16 1200 16 L 1200 5 L 0 5 Z" fill="url(#orangeGlow)" filter="url(#softGlow)" />
+
+  <!-- Top Header Subtitle & Course Tag -->
+  <g transform="translate(60, 48)">
+    <rect x="0" y="0" width="320" height="24" rx="12" fill="#FF6B00" fill-opacity="0.15" stroke="#FF8C00" stroke-width="1" />
+    <circle cx="12" cy="12" r="4" fill="#FF8C00" class="node-pulse" />
+    <text x="24" y="16" fill="#FFA726" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" letter-spacing="1">
+      AI252TA: MACHINE LEARNING OPERATIONS (SEM V)
+    </text>
+  </g>
+
+  <!-- Main Title -->
+  <text x="60" y="118" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="36" font-weight="800" letter-spacing="-0.5">
+    AI-Based Interview Preparation Assistant
+  </text>
+
+  <!-- Subtitle Tagline -->
+  <text x="60" y="152" fill="#8B949E" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="500">
+    Production-Grade MLOps Pipeline <tspan fill="#FF8C00">•</tspan> Automated QA Evaluation <tspan fill="#FF8C00">•</tspan> Reproducible Lifecycle
+  </text>
+
+  <!-- Isometric/Card Architecture Pipeline Visualization -->
+  <g transform="translate(60, 185)">
+    <!-- Connection Glow Line -->
+    <line x1="75" y1="60" x2="1005" y2="60" stroke="url(#lineGrad)" stroke-width="2" />
+    <line x1="75" y1="60" x2="1005" y2="60" stroke="#FF8C00" stroke-width="2" class="flow-stream" opacity="0.8" />
+
+    <!-- Stage 1: Data & DVC -->
+    <g transform="translate(0, 15)">
+      <rect width="150" height="90" rx="8" fill="url(#cardGrad)" stroke="#FF6B00" stroke-width="1.2" />
+      <circle cx="75" cy="22" r="10" fill="#FF6B00" fill-opacity="0.2" stroke="#FF8C00" stroke-width="1.5" />
+      <text x="75" y="26" text-anchor="middle" fill="#FFA726" font-family="sans-serif" font-size="10" font-weight="bold">01</text>
+      <text x="75" y="52" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="13" font-weight="700">DATA &amp; DVC</text>
+      <text x="75" y="70" text-anchor="middle" fill="#8B949E" font-family="sans-serif" font-size="10">Versioned / Cleaned</text>
+      <rect x="25" y="80" width="100" height="2" fill="#FF8C00" />
+    </g>
+
+    <!-- Stage 2: Feature Engineering -->
+    <g transform="translate(186, 15)">
+      <rect width="150" height="90" rx="8" fill="url(#cardGrad)" stroke="#30363D" stroke-width="1.2" />
+      <circle cx="75" cy="22" r="10" fill="#30363D" stroke="#8B949E" stroke-width="1.5" />
+      <text x="75" y="26" text-anchor="middle" fill="#C9D1D9" font-family="sans-serif" font-size="10" font-weight="bold">02</text>
+      <text x="75" y="52" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="13" font-weight="700">FEATURES</text>
+      <text x="75" y="70" text-anchor="middle" fill="#8B949E" font-family="sans-serif" font-size="10">TF-IDF &amp; Syntactics</text>
+    </g>
+
+    <!-- Stage 3: Model & MLflow -->
+    <g transform="translate(372, 15)">
+      <rect width="150" height="90" rx="8" fill="url(#cardGrad)" stroke="#30363D" stroke-width="1.2" />
+      <circle cx="75" cy="22" r="10" fill="#30363D" stroke="#8B949E" stroke-width="1.5" />
+      <text x="75" y="26" text-anchor="middle" fill="#C9D1D9" font-family="sans-serif" font-size="10" font-weight="bold">03</text>
+      <text x="75" y="52" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="13" font-weight="700">MODEL &amp; MLFLOW</text>
+      <text x="75" y="70" text-anchor="middle" fill="#8B949E" font-family="sans-serif" font-size="10">4-Tier Classification</text>
+    </g>
+
+    <!-- Stage 4: FastAPI & Docker -->
+    <g transform="translate(558, 15)">
+      <rect width="150" height="90" rx="8" fill="url(#cardGrad)" stroke="#30363D" stroke-width="1.2" stroke-dasharray="3 3" />
+      <circle cx="75" cy="22" r="10" fill="#21262D" stroke="#6E7681" stroke-width="1" />
+      <text x="75" y="26" text-anchor="middle" fill="#6E7681" font-family="sans-serif" font-size="10" font-weight="bold">04</text>
+      <text x="75" y="52" text-anchor="middle" fill="#8B949E" font-family="sans-serif" font-size="13" font-weight="700">SERVING</text>
+      <text x="75" y="70" text-anchor="middle" fill="#6E7681" font-family="sans-serif" font-size="10">FastAPI &amp; Docker</text>
+    </g>
+
+    <!-- Stage 5: CI/CD & Deploy -->
+    <g transform="translate(744, 15)">
+      <rect width="150" height="90" rx="8" fill="url(#cardGrad)" stroke="#30363D" stroke-width="1.2" stroke-dasharray="3 3" />
+      <circle cx="75" cy="22" r="10" fill="#21262D" stroke="#6E7681" stroke-width="1" />
+      <text x="75" y="26" text-anchor="middle" fill="#6E7681" font-family="sans-serif" font-size="10" font-weight="bold">05</text>
+      <text x="75" y="52" text-anchor="middle" fill="#8B949E" font-family="sans-serif" font-size="13" font-weight="700">CI/CD &amp; DEPLOY</text>
+      <text x="75" y="70" text-anchor="middle" fill="#6E7681" font-family="sans-serif" font-size="10">Actions &amp; Release</text>
+    </g>
+
+    <!-- Stage 6: Monitoring & Drift -->
+    <g transform="translate(930, 15)">
+      <rect width="150" height="90" rx="8" fill="url(#cardGrad)" stroke="#30363D" stroke-width="1.2" stroke-dasharray="3 3" />
+      <circle cx="75" cy="22" r="10" fill="#21262D" stroke="#6E7681" stroke-width="1" />
+      <text x="75" y="26" text-anchor="middle" fill="#6E7681" font-family="sans-serif" font-size="10" font-weight="bold">06</text>
+      <text x="75" y="52" text-anchor="middle" fill="#8B949E" font-family="sans-serif" font-size="13" font-weight="700">MONITORING</text>
+      <text x="75" y="70" text-anchor="middle" fill="#6E7681" font-family="sans-serif" font-size="10">Evidently &amp; Retrain</text>
+    </g>
+  </g>
+
+  <!-- Bottom Terminal Status Bar -->
+  <g transform="translate(60, 318)">
+    <rect width="1080" height="24" rx="4" fill="#090D13" stroke="#21262D" stroke-width="1" />
+    <circle cx="16" cy="12" r="4" fill="#FF8C00" />
+    <text x="30" y="16" fill="#8B949E" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11">
+      STATUS: <tspan fill="#FFA726" font-weight="bold">PHASE 0 FOUNDATION COMPLETED</tspan> │ NEXT: DATASET APPROVAL &amp; DVC INITIALIZATION │ TARGET: PRODUCTION ML PIPELINE
+    </text>
+  </g>
+</svg>

@@ -1,0 +1,61 @@
+# ==============================================================================
+# Pipeline & Experiment Hyperparameters
+# AI-Based Interview Preparation Assistant
+# ==============================================================================
+
+base:
+  project_name: "interview-assistant-mlops"
+  random_state: 42
+  log_level: "INFO"
+
+data:
+  raw_data_path: "data/raw/interview_data.csv"
+  processed_data_dir: "data/processed"
+  text_columns:
+    question: "interview_question"
+    answer: "candidate_answer"
+  target_column: "quality_label"
+  target_classes:
+    0: "Poor"
+    1: "Needs Improvement"
+    2: "Good"
+    3: "Excellent"
+
+split:
+  test_size: 0.20
+  validation_size: 0.10
+  stratify: true
+  random_state: 42
+
+features:
+  tfidf:
+    max_features: 5000
+    ngram_range: [1, 2]
+    stop_words: "english"
+    min_df: 2
+    sublinear_tf: true
+  engineered_features:
+    include_length: true
+    include_sentiment_placeholder: false
+
+model:
+  baseline:
+    algorithm: "logistic_regression"
+    c_param: 1.0
+    solver: "lbfgs"
+    max_iter: 1000
+    random_state: 42
+  comparison:
+    algorithm: "random_forest"
+    n_estimators: 100
+    max_depth: 15
+    random_state: 42
+
+evaluation:
+  primary_metric: "f1_weighted"
+  secondary_metrics:
+    - "accuracy"
+    - "precision_weighted"
+    - "recall_weighted"
+    - "f1_macro"
+  confusion_matrix: true
