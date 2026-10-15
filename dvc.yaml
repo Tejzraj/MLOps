@@ -9,6 +9,9 @@ stages:
     cmd: python src/data/load_data.py
     deps:
       - data/raw/interview_data.csv
+      - src/data/load_data.py
+      - src/data/validation.py
+      - src/utils/config.py
     params:
       - data.raw_data_path
     outs:
@@ -20,6 +23,7 @@ stages:
     deps:
       - data/interim/loaded_data.parquet
       - src/data/preprocess.py
+      - src/utils/config.py
     params:
       - split.test_size
       - split.validation_size
@@ -36,12 +40,14 @@ stages:
     cmd: python src/features/build_features.py
     deps:
       - data/processed/train.parquet
-      - data/processed/val.parquet
-      - data/processed/test.parquet
       - src/features/build_features.py
+      - src/utils/config.py
     params:
       - features.tfidf.max_features
       - features.tfidf.ngram_range
+      - features.tfidf.stop_words
+      - features.tfidf.min_df
+      - features.tfidf.sublinear_tf
     outs:
       - models/tfidf_vectorizer.joblib:
           cache: true
@@ -52,9 +58,13 @@ stages:
       - data/processed/train.parquet
       - models/tfidf_vectorizer.joblib
       - src/models/train_baseline.py
+      - src/features/build_features.py
+      - src/utils/config.py
     params:
       - model.baseline.algorithm
       - model.baseline.c_param
+      - model.baseline.solver
+      - model.baseline.max_iter
       - model.baseline.random_state
     outs:
       - models/baseline_model.joblib:
@@ -65,7 +75,10 @@ stages:
     deps:
       - data/processed/test.parquet
       - models/baseline_model.joblib
+      - models/tfidf_vectorizer.joblib
       - src/evaluation/evaluate.py
+      - src/features/build_features.py
+      - src/utils/config.py
     params:
       - evaluation.primary_metric
     metrics:

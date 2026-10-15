@@ -12,7 +12,7 @@ data:
   raw_data_path: "data/raw/interview_data.csv"
   processed_data_dir: "data/processed"
   text_columns:
-    question: "interview_question"
+    question: "question"
     answer: "candidate_answer"
   target_column: "quality_label"
   target_classes:

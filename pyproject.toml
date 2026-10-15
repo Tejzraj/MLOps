@@ -69,6 +69,7 @@ exclude = [
 minversion = "7.0"
 addopts = "-ra -q --cov=src --cov-report=term-missing"
 testpaths = ["tests"]
+pythonpath = ["."]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

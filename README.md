@@ -69,25 +69,26 @@ NEXT MILESTONE       : FACULTY APPROVAL & DVC DATASET INGESTION
 
 ---
 
-## Phase 1 Lifecycle & Dataset Execution Status
+## Phase 1 Lifecycle & Pipeline Execution Status
 
 ```text
 Phase 1 Execution Flow:
-Dataset Specification ──► Dataset Acquisition ──► EDA ──► Feature Engineering ──► Baseline Model ──► MLflow Tracking
-    [IN PROGRESS]             [NOT STARTED]     [NOT STARTED]    [NOT STARTED]        [NOT STARTED]       [NOT STARTED]
+Data Ingestion ──► Preprocessing ──► Feature Extraction ──► Baseline Model ──► Evaluation ──► MLflow / DVC
+  [TESTED CODE]     [TESTED CODE]       [TESTED CODE]        [TESTED CODE]      [TESTED CODE]    [READY / REPRO]
 ```
 
-| Lifecycle Component | Status | Artifact / Documentation Reference |
-| :--- | :---: | :--- |
-| **Dataset Specification** | `[~] IN PROGRESS` | [`docs/dataset/DATASET_SPECIFICATION.md`](docs/dataset/DATASET_SPECIFICATION.md) |
-| **Labeling Guidelines & Rubric** | `[~] IN PROGRESS` | [`docs/dataset/LABELING_GUIDELINES.md`](docs/dataset/LABELING_GUIDELINES.md) |
-| **Data Collection Protocol** | `[~] IN PROGRESS` | [`docs/dataset/DATA_COLLECTION.md`](docs/dataset/DATA_COLLECTION.md) |
-| **Faculty Approval Dossier** | `[ ] PENDING REVIEW` | [`docs/dataset/DATASET_APPROVAL.md`](docs/dataset/DATASET_APPROVAL.md) |
-| **Dataset Acquisition & DVC Tracking** | `[ ] NOT STARTED` | Planned under `data/raw/` tracked via DVC |
-| **Exploratory Data Analysis (EDA)** | `[ ] NOT STARTED` | [`notebooks/01_data_exploration.ipynb`](notebooks/01_data_exploration.ipynb) |
-| **Feature Engineering Pipeline** | `[ ] NOT STARTED` | [`notebooks/03_feature_engineering.ipynb`](notebooks/03_feature_engineering.ipynb), `src/features/` |
-| **Baseline Model Training** | `[ ] NOT STARTED` | [`notebooks/04_baseline_models.ipynb`](notebooks/04_baseline_models.ipynb), `src/models/` |
-| **MLflow Experiment Tracking** | `[ ] NOT STARTED` | Local & remote tracking configured in `mlruns/` |
+| Lifecycle Component | Implementation Status | Data / Run Status | Artifact Reference |
+| :--- | :---: | :---: | :--- |
+| **Dataset Specification & Rubric** | `[x] COMPLETE` | Verified | [`docs/dataset/DATASET_SPECIFICATION.md`](docs/dataset/DATASET_SPECIFICATION.md) |
+| **Faculty Approval Dossier** | `[x] DRAFTED` | `PENDING REVIEW` | [`docs/dataset/DATASET_APPROVAL.md`](docs/dataset/DATASET_APPROVAL.md) |
+| **Data Ingestion & Schema Validator** | `[x] COMPLETE` | Verified via tests | [`src/data/validation.py`](src/data/validation.py), [`src/data/load_data.py`](src/data/load_data.py) |
+| **Group-Aware Preprocessing Split** | `[x] COMPLETE` | Verified via tests | [`src/data/preprocess.py`](src/data/preprocess.py) (70% train / 10% val / 20% test) |
+| **Leakage-Safe Feature Pipeline** | `[x] COMPLETE` | Verified via tests | [`src/features/build_features.py`](src/features/build_features.py) (`models/tfidf_vectorizer.joblib`) |
+| **Baseline Model Training** | `[x] COMPLETE` | Verified via tests | [`src/models/train_baseline.py`](src/models/train_baseline.py) (`models/baseline_model.joblib`) |
+| **Evaluation & Confusion Matrix** | `[x] COMPLETE` | Verified via tests | [`src/evaluation/evaluate.py`](src/evaluation/evaluate.py) (`reports/metrics.json`) |
+| **MLflow Experiment Tracking** | `[x] COMPLETE` | Local `mlruns/` verified | `experiment: interview-answer-quality-baseline` |
+| **DVC Reproducible Pipeline DAG** | `[x] COMPLETE` | Verified via `dvc dag` | [`dvc.yaml`](dvc.yaml) (5 stages connected) |
+| **Real Approved Data Ingestion** | `[ ] BLOCKED` | Awaiting approval | Expected at `data/raw/interview_data.csv` |
 
 ---
 
@@ -418,44 +419,91 @@ MLOps/
 
 ## Quickstart & Local Setup
 
-### 1. Prerequisites
-- Python 3.10 or 3.11
+### 1. Prerequisites & Environment
+- Python 3.10 or 3.11 (tested on Python 3.11.9)
+- macOS / Linux
 - Git & Git LFS
-- Make (optional, for developer shortcut commands)
 
-### 2. Clone Repository
 ```bash
+# Clone the repository
 git clone https://github.com/Tejzraj/MLOps.git
 cd MLOps
-```
 
-### 3. Environment Initialization
-```bash
-# Create virtual environment
-make setup-env
+# Activate virtual environment
 source .venv/bin/activate
-
-# Install core and development dependencies
-make install-dev
 ```
 
-### 4. Verify Development Tooling
-```bash
-# Check formatting and linting
-make lint
+### 2. Run Automated Test Suite
+The unit test suite runs completely offline on in-memory fixtures without requiring real data:
 
-# Run initial test suite verification
+```bash
+# Run all 51 automated unit tests with coverage reporting
+pytest tests/
+
+# Or via Make
 make test
 ```
 
-### 5. Launch Local Services (Scaffolded)
-```bash
-# Launch MLflow tracking dashboard
-make mlflow-ui
+### 3. Run Code Quality Checks
+Verify formatting and static analysis rules (Ruff & Black):
 
-# Inspect DVC pipeline status
-make dvc-status
+```bash
+# Run linters and formatting verification
+ruff check src/ tests/
+black --check src/ tests/
 ```
+
+### 4. Running Pipeline Stages Individually
+Each pipeline stage can be executed directly as a standalone Python CLI script once the input data exists:
+
+```bash
+# Stage 1: Load and validate raw CSV against 19-field schema
+python src/data/load_data.py --input data/raw/interview_data.csv --output data/interim/loaded_data.parquet
+
+# Stage 2: Conservative normalization & group-aware split (70% train / 10% val / 20% test)
+python src/data/preprocess.py --input data/interim/loaded_data.parquet --output-dir data/processed
+
+# Stage 3: Fit TF-IDF feature pipeline on training split only
+python src/features/build_features.py --train-data data/processed/train.parquet --output models/tfidf_vectorizer.joblib
+
+# Stage 4: Train baseline Logistic Regression classifier with MLflow tracking
+python src/models/train_baseline.py --train-data data/processed/train.parquet --vectorizer models/tfidf_vectorizer.joblib --output models/baseline_model.joblib
+
+# Stage 5: Evaluate on held-out test split, export metrics and confusion matrix
+python src/evaluation/evaluate.py --test-data data/processed/test.parquet --model models/baseline_model.joblib --vectorizer models/tfidf_vectorizer.joblib
+```
+
+### 5. Running the Complete DVC Pipeline
+
+```bash
+# Visualize the dependency DAG
+dvc dag
+
+# Reproduce the full pipeline end-to-end
+dvc repro
+```
+
+> [!NOTE]
+> **Expected Failure when Raw Data is Missing:**
+> Running `dvc repro` without placing the approved dataset at `data/raw/interview_data.csv` will halt cleanly at the `load_data` stage with:
+> `ERROR: failed to reproduce 'load_data': No such file or directory: '.../data/raw/interview_data.csv'`.
+> This is an intentional integrity safeguard ensuring unapproved or fabricated data is never quietly processed.
+
+### 6. Inspecting MLflow Experiments
+
+Launch the local MLflow dashboard to view logged parameters, metrics, models, and artifacts:
+
+```bash
+mlflow ui --port 5000
+# Open http://localhost:5000 in your browser
+```
+
+### 7. Artifact Storage Locations
+- **Fitted Feature Pipeline:** `models/tfidf_vectorizer.joblib`
+- **Trained Model Artifact:** `models/baseline_model.joblib`
+- **Evaluation Metrics JSON:** `reports/metrics.json`
+- **Confusion Matrix Figure:** `reports/figures/confusion_matrix.png`
+- **MLflow Experiment Runs:** `mlruns/` (under experiment `interview-answer-quality-baseline`)
 
 ---
 
