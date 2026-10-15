@@ -1,0 +1,171 @@
+schema: '2.0'
+stages:
+  ingest_source:
+    cmd: python src/data/ingest_source.py
+    deps:
+    - path: data/source/CS-Fundamentals
+      hash: md5
+      md5: 89882d02c63dc211fdf3551e4fde1a23.dir
+      size: 74720
+      nfiles: 14
+    - path: src/data/ingest_source.py
+      hash: md5
+      md5: ccc5c2128349454a700043b8d469133c
+      size: 14731
+    - path: src/data/validation.py
+      hash: md5
+      md5: d4f094e6687df993c91ed32580f4d0dd
+      size: 22337
+    - path: src/utils/config.py
+      hash: md5
+      md5: 2bb4e47e4184d689b6b67c331b068c98
+      size: 3799
+    params:
+      params.yaml:
+        data.raw_data_path: data/raw/question_bank.csv
+        data.source_dir: data/source/CS-Fundamentals
+    outs:
+    - path: data/raw/question_bank.csv
+      hash: md5
+      md5: 8ce15f2fdcab8772e2c0354837f1f54e
+      size: 62782
+    - path: reports/data_readiness_report.json
+      hash: md5
+      md5: 7bde6e6d6c37e97d6f098d744c4ddd54
+      size: 1064
+  preprocess:
+    cmd: python src/data/preprocess.py
+    deps:
+    - path: data/raw/question_bank.csv
+      hash: md5
+      md5: 8ce15f2fdcab8772e2c0354837f1f54e
+      size: 62782
+    - path: src/data/preprocess.py
+      hash: md5
+      md5: b5ea580b0f4eb5503c2615c486984c86
+      size: 9025
+    - path: src/utils/config.py
+      hash: md5
+      md5: 2bb4e47e4184d689b6b67c331b068c98
+      size: 3799
+    params:
+      params.yaml:
+        split.random_state: 42
+        split.test_size: 0.2
+        split.validation_size: 0.1
+    outs:
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: e279e04a3f1c720ba7ce49ebe83a7b06
+      size: 10066
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: 201e801d11c5dd92cc1d0dd7b487d7b4
+      size: 17198
+    - path: data/processed/val.parquet
+      hash: md5
+      md5: 114a5cbf0c780a1f0d098c6fd6e14791
+      size: 8636
+  feature_engineering:
+    cmd: python src/features/build_features.py
+    deps:
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: 201e801d11c5dd92cc1d0dd7b487d7b4
+      size: 17198
+    - path: src/features/build_features.py
+      hash: md5
+      md5: 0e91925fa7e01ca293c319cf7d65ba29
+      size: 7893
+    - path: src/utils/config.py
+      hash: md5
+      md5: 2bb4e47e4184d689b6b67c331b068c98
+      size: 3799
+    params:
+      params.yaml:
+        features.tfidf.max_features: 3000
+        features.tfidf.min_df: 1
+        features.tfidf.ngram_range:
+        - 1
+        - 2
+        features.tfidf.stop_words: english
+        features.tfidf.sublinear_tf: true
+    outs:
+    - path: models/tfidf_vectorizer.joblib
+      hash: md5
+      md5: 514617141aa0d10f49f77a438a7068e0
+      size: 57961
+  train_baseline:
+    cmd: python src/models/train_baseline.py
+    deps:
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: 201e801d11c5dd92cc1d0dd7b487d7b4
+      size: 17198
+    - path: models/tfidf_vectorizer.joblib
+      hash: md5
+      md5: 514617141aa0d10f49f77a438a7068e0
+      size: 57961
+    - path: src/features/build_features.py
+      hash: md5
+      md5: 0e91925fa7e01ca293c319cf7d65ba29
+      size: 7893
+    - path: src/models/train_baseline.py
+      hash: md5
+      md5: 3b389658bd57eaccba6ad78ce0ff7dc3
+      size: 11622
+    - path: src/utils/config.py
+      hash: md5
+      md5: 2bb4e47e4184d689b6b67c331b068c98
+      size: 3799
+    params:
+      params.yaml:
+        model.baseline.algorithm: logistic_regression
+        model.baseline.c_param: 1.0
+        model.baseline.max_iter: 1000
+        model.baseline.random_state: 42
+        model.baseline.solver: lbfgs
+    outs:
+    - path: models/baseline_model.joblib
+      hash: md5
+      md5: f1147db15e7335cd9d1c409db97d6b3c
+      size: 90902
+  evaluate:
+    cmd: python src/evaluation/evaluate.py
+    deps:
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: e279e04a3f1c720ba7ce49ebe83a7b06
+      size: 10066
+    - path: models/baseline_model.joblib
+      hash: md5
+      md5: f1147db15e7335cd9d1c409db97d6b3c
+      size: 90902
+    - path: models/tfidf_vectorizer.joblib
+      hash: md5
+      md5: 514617141aa0d10f49f77a438a7068e0
+      size: 57961
+    - path: src/evaluation/evaluate.py
+      hash: md5
+      md5: cba3ebc9e3fd7f01ee25fcb78b467f36
+      size: 13937
+    - path: src/features/build_features.py
+      hash: md5
+      md5: 0e91925fa7e01ca293c319cf7d65ba29
+      size: 7893
+    - path: src/utils/config.py
+      hash: md5
+      md5: 2bb4e47e4184d689b6b67c331b068c98
+      size: 3799
+    params:
+      params.yaml:
+        evaluation.primary_metric: f1_macro
+    outs:
+    - path: reports/figures/confusion_matrix.png
+      hash: md5
+      md5: 3d6b886bba5fdaa035789e05c25e28f1
+      size: 87075
+    - path: reports/metrics.json
+      hash: md5
+      md5: b6184219b51192f082820a3baf624b24
+      size: 3670

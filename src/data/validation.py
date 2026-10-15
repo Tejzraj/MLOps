@@ -487,3 +487,147 @@ def validate_dataset(
     if raise_on_error:
         result.raise_if_invalid()
     return result
+
+
+# ==============================================================================
+# Question Bank Schema (for Source Ingestion and Domain Classification Baseline)
+# ==============================================================================
+QUESTION_BANK_SCHEMA_COLUMNS: list[str] = [
+    "question_id",
+    "question",
+    "domain",
+    "reference_answer",
+    "source_repo",
+    "source_file",
+    "extraction_method",
+    "license_status",
+    "group_id",
+]
+
+QUESTION_BANK_REQUIRED_COLUMNS: list[str] = [
+    "question_id",
+    "question",
+    "domain",
+    "source_repo",
+    "source_file",
+    "extraction_method",
+    "license_status",
+    "group_id",
+]
+
+QUESTION_BANK_DOMAINS: set[str] = {
+    "DSA",
+    "OOP",
+    "DBMS and SQL",
+    "Operating Systems",
+    "Computer Networks",
+    "Software Engineering",
+    "System Design",
+    "HR / Behavioural",
+}
+
+
+def _validate_qb_columns(df: pd.DataFrame, allow_extra_columns: bool) -> tuple[list[str], bool]:
+    """Validates presence and exclusivity of Question Bank columns."""
+    errors: list[str] = []
+    missing_cols = [c for c in QUESTION_BANK_SCHEMA_COLUMNS if c not in df.columns]
+    if missing_cols:
+        errors.append(f"Missing required question bank columns: {missing_cols}")
+        return errors, True
+
+    if not allow_extra_columns:
+        extra_cols = [c for c in df.columns if c not in QUESTION_BANK_SCHEMA_COLUMNS]
+        if extra_cols:
+            errors.append(f"Disallowed extra columns found: {extra_cols}")
+
+    return errors, False
+
+
+def _validate_qb_content(df: pd.DataFrame) -> list[str]:
+    """Validates integrity, domain taxonomy, length, and uniqueness of Question Bank records."""
+    errors: list[str] = []
+
+    for col in QUESTION_BANK_REQUIRED_COLUMNS:
+        null_count = int(df[col].isnull().sum())
+        if null_count > 0:
+            errors.append(f"Column '{col}' has {null_count} null value(s).")
+        blank_mask = df[col].astype(str).str.strip() == ""
+        blank_count = int(blank_mask.sum())
+        if blank_count > 0:
+            errors.append(f"Column '{col}' has {blank_count} empty or whitespace-only value(s).")
+
+    invalid_domains = sorted(set(df["domain"].dropna().unique()) - QUESTION_BANK_DOMAINS)
+    if invalid_domains:
+        errors.append(
+            f"Invalid domain(s) found: {invalid_domains}. Allowed: {sorted(QUESTION_BANK_DOMAINS)}"
+        )
+
+    short_questions = df[df["question"].astype(str).str.strip().str.len() < 10]
+    if not short_questions.empty:
+        errors.append(f"Found {len(short_questions)} question(s) shorter than 10 characters.")
+
+    dup_ids = df[df["question_id"].duplicated(keep=False)]["question_id"].tolist()
+    if dup_ids:
+        errors.append(f"Duplicate question_id(s) found: {sorted(set(dup_ids))[:5]}")
+
+    return errors
+
+
+def validate_question_bank_dataset(
+    df: Any,
+    allow_extra_columns: bool = True,
+    raise_on_error: bool = True,
+) -> ValidationResult:
+    """Validates an in-memory DataFrame against the Question Bank schema.
+
+    Enforces:
+    - Required columns present
+    - No null or blank values in required fields
+    - Domain belongs to QUESTION_BANK_DOMAINS
+    - question_id uniqueness
+    - Minimum question length (>= 10 chars)
+    - Valid group_id
+
+    Args:
+        df: Input pandas DataFrame.
+        allow_extra_columns: Whether extra columns are allowed.
+        raise_on_error: Whether to raise DatasetValidationError on failure.
+
+    Returns:
+        ValidationResult dataclass with is_valid, errors, and warnings.
+
+    Raises:
+        DatasetValidationError: If validation fails and raise_on_error is True.
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not isinstance(df, pd.DataFrame):
+        errors.append(f"Expected pandas DataFrame, got {type(df).__name__}.")
+        result = ValidationResult(is_valid=False, errors=errors, warnings=warnings)
+        if raise_on_error:
+            result.raise_if_invalid()
+        return result
+
+    if df.empty:
+        errors.append("Question bank DataFrame is empty (0 rows). At least 1 row is required.")
+        result = ValidationResult(is_valid=False, errors=errors, warnings=warnings)
+        if raise_on_error:
+            result.raise_if_invalid()
+        return result
+
+    col_errors, fatal = _validate_qb_columns(df, allow_extra_columns)
+    errors.extend(col_errors)
+    if fatal:
+        result = ValidationResult(is_valid=False, errors=errors, warnings=warnings)
+        if raise_on_error:
+            result.raise_if_invalid()
+        return result
+
+    errors.extend(_validate_qb_content(df))
+
+    is_valid = len(errors) == 0
+    result = ValidationResult(is_valid=is_valid, errors=errors, warnings=warnings)
+    if raise_on_error:
+        result.raise_if_invalid()
+    return result

@@ -8,8 +8,14 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
 from typing import Sequence
+
+# Ensure project root is in sys.path
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 import numpy as np
 import pandas as pd
@@ -157,12 +163,15 @@ def preprocess_data(
 
     if not in_file.is_file():
         raise FileNotFoundError(
-            f"Interim dataset not found at '{in_file.resolve()}'. "
-            "Execute the load_data stage first."
+            f"Input dataset not found at '{in_file.resolve()}'. "
+            "Execute the ingestion or load_data stage first."
         )
 
-    logger.info(f"Loading interim dataset from '{in_file}'...")
-    df = pd.read_parquet(in_file)
+    logger.info(f"Loading dataset from '{in_file}'...")
+    if in_file.suffix == ".csv":
+        df = pd.read_csv(in_file)
+    else:
+        df = pd.read_parquet(in_file)
     logger.info(f"Loaded {len(df)} rows.")
 
     # Conservative normalization of text fields
@@ -172,9 +181,10 @@ def preprocess_data(
             df[col] = df[col].astype(str).apply(normalize_text_conservatively)
 
     # Group-aware train / validation / test partitioning
+    grp_col = "group_id" if "group_id" in df.columns else "question_id"
     train_df, val_df, test_df = group_aware_split(
         df=df,
-        group_column="question_id",
+        group_column=grp_col,
         test_size=test_size,
         val_size=val_size,
         random_state=random_state,
@@ -206,8 +216,8 @@ def main() -> None:
     parser.add_argument(
         "--input",
         type=str,
-        default="data/interim/loaded_data.parquet",
-        help="Path to interim Parquet file.",
+        default=None,
+        help="Path to input dataset file (CSV or Parquet).",
     )
     parser.add_argument(
         "--output-dir",
@@ -218,13 +228,18 @@ def main() -> None:
     args = parser.parse_args()
 
     params = load_params()
+    raw_path = params.get("data", {}).get("raw_data_path", "data/raw/question_bank.csv")
+    input_path = args.input or (
+        raw_path if Path(raw_path).exists() else "data/interim/loaded_data.parquet"
+    )
+
     split_cfg = params.get("split", {})
     test_size = float(split_cfg.get("test_size", 0.20))
     val_size = float(split_cfg.get("validation_size", 0.10))
     random_state = int(split_cfg.get("random_state", 42))
 
     preprocess_data(
-        input_path=args.input,
+        input_path=input_path,
         output_dir=args.output_dir,
         test_size=test_size,
         val_size=val_size,

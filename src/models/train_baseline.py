@@ -7,8 +7,14 @@ on TF-IDF features with MLflow experiment tracking and model artifact serializat
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 from typing import Any
+
+# Ensure project root is in sys.path
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 import joblib
 import mlflow
@@ -97,10 +103,10 @@ def validate_training_data(
 
     Args:
         train_df: Training DataFrame.
-        target_column: Target column name.
+        target_column: Target column name ('domain' or 'quality_label').
 
     Returns:
-        NumPy array of integer target labels.
+        NumPy array of target labels.
 
     Raises:
         ValueError: If target column is missing, has invalid classes, or has < 2 unique classes.
@@ -114,11 +120,18 @@ def validate_training_data(
     y = train_df[target_column].to_numpy()
     unique_classes = np.unique(y)
 
-    invalid_classes = [c for c in unique_classes if c not in ALLOWED_TARGET_CLASSES]
+    if target_column == "domain":
+        from src.data.validation import QUESTION_BANK_DOMAINS
+
+        allowed: set[Any] = set(QUESTION_BANK_DOMAINS)
+    else:
+        allowed = set(ALLOWED_TARGET_CLASSES)
+
+    invalid_classes = [c for c in unique_classes if c not in allowed]
     if invalid_classes:
         raise ValueError(
             f"Training data contains invalid target classes: {invalid_classes}. "
-            f"Allowed classes: {ALLOWED_TARGET_CLASSES}."
+            f"Allowed classes: {sorted(str(c) for c in allowed)}."
         )
 
     if len(unique_classes) < 2:
@@ -176,6 +189,7 @@ def train_model(
     algorithm: str = "logistic_regression",
     model_params: dict[str, Any] | None = None,
     track_with_mlflow: bool = True,
+    target_column: str | None = None,
 ) -> Any:
     """Loads training data, featurizes it, trains model, logs to MLflow, and saves artifact.
 
@@ -186,6 +200,7 @@ def train_model(
         algorithm: 'logistic_regression' or 'random_forest'.
         model_params: Model hyperparameters dictionary.
         track_with_mlflow: Whether to log run to MLflow.
+        target_column: Target column name ('domain' or 'quality_label').
 
     Returns:
         Trained model instance.
@@ -213,13 +228,14 @@ def train_model(
     train_df = pd.read_parquet(train_file)
     fingerprint = compute_data_fingerprint(train_df)
 
-    y_train = validate_training_data(train_df)
+    target_col = target_column or ("domain" if "domain" in train_df.columns else "quality_label")
+    y_train = validate_training_data(train_df, target_column=target_col)
 
     logger.info(f"Loading fitted vectorizer from '{vec_file}'...")
     vectorizer = joblib.load(vec_file)
 
     logger.info("Transforming training texts into TF-IDF feature matrix...")
-    x_train, _ = transform_features(train_df, vectorizer)
+    x_train, _ = transform_features(train_df, vectorizer, target_column=target_col)
     logger.info(f"Feature matrix shape: {x_train.shape}.")
 
     clf = build_classifier(algorithm=algorithm, model_params=model_params)
@@ -234,10 +250,11 @@ def train_model(
     metadata = {
         "algorithm": algorithm,
         "model_params": model_params or {},
+        "target_column": target_col,
         "train_fingerprint": fingerprint,
         "n_train_samples": int(x_train.shape[0]),
         "n_features": int(x_train.shape[1]),
-        "classes": [int(c) for c in clf.classes_],
+        "classes": [int(c) if isinstance(c, (int, np.integer)) else str(c) for c in clf.classes_],
     }
     artifact_bundle = {
         "model": clf,
@@ -313,6 +330,8 @@ def main() -> None:
     else:
         model_params = model_cfg.get("comparison", {})
 
+    target_column = params.get("data", {}).get("target_column")
+
     train_model(
         train_path=args.train_data,
         vectorizer_path=args.vectorizer,
@@ -320,6 +339,7 @@ def main() -> None:
         algorithm=algorithm,
         model_params=model_params,
         track_with_mlflow=True,
+        target_column=target_column,
     )
 
 

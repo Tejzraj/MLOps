@@ -70,6 +70,10 @@ htmlcov/
 # ==============================================================================
 # Data and Artifacts (tracked via DVC, ignored by Git)
 # ==============================================================================
+data/source/*
+!data/source/.gitkeep
+!data/source/README.md
+
 data/raw/*
 !data/raw/.gitkeep
 !data/raw/README.md

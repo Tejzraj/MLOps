@@ -17,11 +17,14 @@ from src.data.validation import (
     ALLOWED_QUESTION_TYPES,
     CANONICAL_DOMAINS,
     PROPOSED_LABEL_MAPPING,
+    QUESTION_BANK_DOMAINS,
+    QUESTION_BANK_SCHEMA_COLUMNS,
     SCHEMA_COLUMNS,
     DatasetValidationError,
     ValidationResult,
     map_score_to_proposed_label,
     validate_dataset,
+    validate_question_bank_dataset,
 )
 
 __all__ = [
@@ -31,6 +34,8 @@ __all__ = [
     "ALLOWED_QUESTION_TYPES",
     "CANONICAL_DOMAINS",
     "PROPOSED_LABEL_MAPPING",
+    "QUESTION_BANK_DOMAINS",
+    "QUESTION_BANK_SCHEMA_COLUMNS",
     "SCHEMA_COLUMNS",
     "DatasetValidationError",
     "ValidationResult",
@@ -40,4 +45,5 @@ __all__ = [
     "normalize_text_conservatively",
     "preprocess_data",
     "validate_dataset",
+    "validate_question_bank_dataset",
 ]

@@ -1,0 +1,199 @@
+{
+  "accuracy": 0.8333,
+  "f1_weighted": 0.8205,
+  "f1_macro": 0.8337,
+  "precision_weighted": 0.8958,
+  "recall_weighted": 0.8333,
+  "confusion_matrix": [
+    [
+      4,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      15,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      4,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      10,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      3,
+      0
+    ],
+    [
+      0,
+      0,
+      3,
+      0,
+      0,
+      0,
+      0,
+      1
+    ]
+  ],
+  "classes": [
+    "Computer Networks",
+    "DBMS and SQL",
+    "DSA",
+    "HR / Behavioural",
+    "OOP",
+    "Operating Systems",
+    "Software Engineering",
+    "System Design"
+  ],
+  "per_class": {
+    "Computer Networks": {
+      "f1": 0.6666666666666666,
+      "precision": 1.0,
+      "recall": 0.5,
+      "support": 8
+    },
+    "DBMS and SQL": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "support": 3
+    },
+    "DSA": {
+      "f1": 0.7692307692307693,
+      "precision": 0.625,
+      "recall": 1.0,
+      "support": 15
+    },
+    "HR / Behavioural": {
+      "f1": 0.8333333333333334,
+      "precision": 1.0,
+      "recall": 0.7142857142857143,
+      "support": 7
+    },
+    "OOP": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "support": 4
+    },
+    "Operating Systems": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "support": 10
+    },
+    "Software Engineering": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "support": 3
+    },
+    "System Design": {
+      "f1": 0.4,
+      "precision": 1.0,
+      "recall": 0.25,
+      "support": 4
+    }
+  },
+  "target_column": "domain",
+  "n_test_samples": 54,
+  "test_data_fingerprint": "9f777dc3da1d423e71f57dd14d2de87a169c7e2a07432e7ec7ea35849c1ae312",
+  "misclassified_examples": [
+    {
+      "question_id": "Q_CN_001",
+      "domain": "Computer Networks",
+      "difficulty": "UNKNOWN",
+      "true_label": "Computer Networks",
+      "predicted_label": "DSA",
+      "question_preview": "Difference between HTTP and HTTPS",
+      "candidate_answer_preview": ""
+    },
+    {
+      "question_id": "Q_CN_013",
+      "domain": "Computer Networks",
+      "difficulty": "UNKNOWN",
+      "true_label": "Computer Networks",
+      "predicted_label": "DSA",
+      "question_preview": "Explain DNS \u2014 concept clarity + associated terms [V.V.IMP]",
+      "candidate_answer_preview": ""
+    },
+    {
+      "question_id": "Q_CN_033",
+      "domain": "Computer Networks",
+      "difficulty": "UNKNOWN",
+      "true_label": "Computer Networks",
+      "predicted_label": "DSA",
+      "question_preview": "How APIs work + API Gateway",
+      "candidate_answer_preview": ""
+    },
+    {
+      "question_id": "Q_CN_034",
+      "domain": "Computer Networks",
+      "difficulty": "UNKNOWN",
+      "true_label": "Computer Networks",
+      "predicted_label": "DSA",
+      "question_preview": "What happens when you type a URL in the web browser?",
+      "candidate_answer_preview": ""
+    },
+    {
+      "question_id": "Q_HR_017",
+      "domain": "HR / Behavioural",
+      "difficulty": "UNKNOWN",
+      "true_label": "HR / Behavioural",
+      "predicted_label": "DSA",
+      "question_preview": "Tell me about the STAR method for behavioral interviews.",
+      "candidate_answer_preview": ""
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-10-15T03:30:59.418453+00:00",
+  "source_repo": "https://github.com/Krishnagangwal/CS-Fundamentals",
+  "license_status": "unlicensed_educational",
+  "total_extracted_records": 272,
+  "valid_records": 272,
+  "duplicate_records_removed": 0,
+  "excluded_ambiguous_records": 3,
+  "domain_distribution": {
+    "Computer Networks": 36,
+    "DBMS and SQL": 22,
+    "DSA": 67,
+    "HR / Behavioural": 25,
+    "OOP": 27,
+    "Operating Systems": 38,
+    "Software Engineering": 26,
+    "System Design": 31
+  },
+  "ambiguous_examples": [
+    {
+      "text": "Factory",
+      "domain": "OOP",
+      "file": "OOPs/README.md",
+      "reason": "too short or URL"
+    },
+    {
+      "text": "Kanban",
+      "domain": "Software Engineering",
+      "file": "Software-Engineering/README.md",
+      "reason": "too short or URL"
+    },
+    {
+      "text": "Tries",
+      "domain": "DSA",
+      "file": "DSA/README.md",
+      "reason": "too short or URL"
+    }
+  ],
+  "data_fingerprint_sha256": "45b961595df59f36ca4a35104f6c842461428ae192dd945670c9d80ca78b2e92"
+}

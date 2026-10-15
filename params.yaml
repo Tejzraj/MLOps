@@ -1,6 +1,7 @@
 # ==============================================================================
 # Pipeline & Experiment Hyperparameters
 # AI-Based Interview Preparation Assistant
+# Phase 1 Pipeline: Question Bank Domain Classification Baseline
 # ==============================================================================
 
 base:
@@ -9,17 +10,22 @@ base:
   log_level: "INFO"
 
 data:
-  raw_data_path: "data/raw/interview_data.csv"
+  source_dir: "data/source/CS-Fundamentals"
+  raw_data_path: "data/raw/question_bank.csv"
   processed_data_dir: "data/processed"
   text_columns:
     question: "question"
-    answer: "candidate_answer"
-  target_column: "quality_label"
+    answer: null
+  target_column: "domain"
   target_classes:
-    0: "Poor"
-    1: "Needs Improvement"
-    2: "Good"
-    3: "Excellent"
+    0: "Computer Networks"
+    1: "DBMS and SQL"
+    2: "DSA"
+    3: "HR / Behavioural"
+    4: "OOP"
+    5: "Operating Systems"
+    6: "Software Engineering"
+    7: "System Design"
 
 split:
   test_size: 0.20
@@ -29,10 +35,10 @@ split:
 
 features:
   tfidf:
-    max_features: 5000
+    max_features: 3000
     ngram_range: [1, 2]
     stop_words: "english"
-    min_df: 2
+    min_df: 1
     sublinear_tf: true
   engineered_features:
     include_length: true
@@ -52,10 +58,10 @@ model:
     random_state: 42
 
 evaluation:
-  primary_metric: "f1_weighted"
+  primary_metric: "f1_macro"
   secondary_metrics:
     - "accuracy"
+    - "f1_weighted"
     - "precision_weighted"
     - "recall_weighted"
-    - "f1_macro"
   confusion_matrix: true

@@ -9,8 +9,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any
+
+# Ensure project root is in sys.path
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 import joblib
 import matplotlib
@@ -27,7 +33,7 @@ from sklearn.metrics import (
 
 from src.features.build_features import transform_features
 from src.models.train_baseline import setup_mlflow_tracking
-from src.utils.config import compute_data_fingerprint, get_logger
+from src.utils.config import compute_data_fingerprint, get_logger, load_params
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -46,19 +52,24 @@ CLASS_LABELS = {
 def compute_evaluation_metrics(
     y_true: np.ndarray,
     y_pred: np.ndarray,
-    classes: list[int] | None = None,
+    classes: list[Any] | None = None,
 ) -> dict[str, Any]:
     """Calculates multi-class classification metrics with explicit class ordering.
 
     Args:
         y_true: Ground truth target labels.
         y_pred: Model predicted target labels.
-        classes: Ordered list of all class IDs (default [0, 1, 2, 3]).
+        classes: Ordered list of all class IDs or names.
 
     Returns:
         Dictionary of computed metrics, per-class metrics, and confusion matrix.
     """
-    target_classes = classes or ALL_CLASSES
+    if classes is not None:
+        target_classes = classes
+    elif len(y_true) > 0 and isinstance(y_true[0], str):
+        target_classes = sorted(set(y_true) | set(y_pred))
+    else:
+        target_classes = ALL_CLASSES
 
     acc = float(accuracy_score(y_true, y_pred))
     f1_w = float(f1_score(y_true, y_pred, average="weighted", zero_division=0))
@@ -66,7 +77,7 @@ def compute_evaluation_metrics(
     prec_w = float(precision_score(y_true, y_pred, average="weighted", zero_division=0))
     rec_w = float(recall_score(y_true, y_pred, average="weighted", zero_division=0))
 
-    # Confusion matrix with explicit labels [0, 1, 2, 3]
+    # Confusion matrix with explicit class labels
     cm = confusion_matrix(y_true, y_pred, labels=target_classes).tolist()
 
     # Per-class metrics
@@ -78,13 +89,19 @@ def compute_evaluation_metrics(
         y_true, y_pred, average=None, labels=target_classes, zero_division=0
     )
 
-    per_class_breakdown: dict[str, dict[str, float]] = {}
+    per_class_breakdown: dict[str, dict[str, Any]] = {}
     for idx, c in enumerate(target_classes):
         label_name = CLASS_LABELS.get(c, str(c))
-        per_class_breakdown[f"class_{c}_{label_name}"] = {
+        key = (
+            f"class_{c}_{label_name}"
+            if isinstance(c, (int, np.integer)) and c in CLASS_LABELS
+            else str(c)
+        )
+        per_class_breakdown[key] = {
             "f1": float(per_class_f1[idx]),
             "precision": float(per_class_prec[idx]),
             "recall": float(per_class_rec[idx]),
+            "support": int(np.sum(y_true == c)),
         }
 
     return {
@@ -94,7 +111,7 @@ def compute_evaluation_metrics(
         "precision_weighted": round(prec_w, 4),
         "recall_weighted": round(rec_w, 4),
         "confusion_matrix": cm,
-        "classes": target_classes,
+        "classes": [int(c) if isinstance(c, (int, np.integer)) else str(c) for c in target_classes],
         "per_class": per_class_breakdown,
     }
 
@@ -102,20 +119,27 @@ def compute_evaluation_metrics(
 def plot_confusion_matrix(
     cm: list[list[int]],
     output_path: str | Path,
-    classes: list[int] | None = None,
+    classes: list[Any] | None = None,
 ) -> Path:
     """Generates and saves a confusion matrix visualization using matplotlib.
 
     Args:
         cm: Confusion matrix 2D list.
         output_path: Path to output PNG image.
-        classes: Ordered list of class IDs.
+        classes: Ordered list of class IDs or names.
 
     Returns:
         Path to the saved PNG image.
     """
     target_classes = classes or ALL_CLASSES
-    labels = [f"{c}: {CLASS_LABELS.get(c, '')}" for c in target_classes]
+    labels = [
+        (
+            f"{c}: {CLASS_LABELS.get(c, '')}"
+            if isinstance(c, (int, np.integer)) and c in CLASS_LABELS
+            else str(c)
+        )
+        for c in target_classes
+    ]
     matrix = np.array(cm)
 
     fig, ax = plt.subplots(figsize=(6, 5))
@@ -179,19 +203,46 @@ def extract_misclassified_examples(
 
     for idx in mis_idx[:max_examples]:
         row = df.iloc[idx]
+        true_val = (
+            int(y_true[idx]) if isinstance(y_true[idx], (int, np.integer)) else str(y_true[idx])
+        )
+        pred_val = (
+            int(y_pred[idx]) if isinstance(y_pred[idx], (int, np.integer)) else str(y_pred[idx])
+        )
         errors.append(
             {
                 "question_id": str(row.get("question_id", "UNKNOWN")),
                 "domain": str(row.get("domain", "UNKNOWN")),
                 "difficulty": str(row.get("difficulty", "UNKNOWN")),
-                "true_label": int(y_true[idx]),
-                "predicted_label": int(y_pred[idx]),
+                "true_label": true_val,
+                "predicted_label": pred_val,
                 "question_preview": str(row.get("question", ""))[:80],
                 "candidate_answer_preview": str(row.get("candidate_answer", ""))[:80],
             }
         )
 
     return errors
+
+
+def _verify_input_paths(paths: list[tuple[Path, str]]) -> None:
+    """Verifies that all required file paths exist."""
+    for path, desc in paths:
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"{desc} not found at '{path.resolve()}'. Please complete upstream pipeline stages first."
+            )
+
+
+def _resolve_target_classes(
+    clf: Any, target_col: str, y_true: np.ndarray, y_pred: np.ndarray
+) -> list[Any]:
+    """Determines class list ordering for evaluation metrics."""
+    target_classes = getattr(clf, "classes_", None)
+    if target_classes is not None:
+        return list(target_classes)
+    if target_col == "quality_label":
+        return ALL_CLASSES
+    return sorted(set(y_true) | set(y_pred))
 
 
 def evaluate_model(
@@ -201,6 +252,7 @@ def evaluate_model(
     metrics_output_path: str | Path = "reports/metrics.json",
     figure_output_path: str | Path = "reports/figures/confusion_matrix.png",
     track_with_mlflow: bool = True,
+    target_column: str | None = None,
 ) -> dict[str, Any]:
     """Loads test split and model, evaluates predictions, writes reports, and logs to MLflow.
 
@@ -211,6 +263,7 @@ def evaluate_model(
         metrics_output_path: Path to save reports/metrics.json.
         figure_output_path: Path to save confusion matrix image.
         track_with_mlflow: Whether to log evaluation metrics to MLflow.
+        target_column: Target column name ('domain' or 'quality_label').
 
     Returns:
         Dictionary of evaluation results.
@@ -225,24 +278,24 @@ def evaluate_model(
     metrics_file = Path(metrics_output_path)
     fig_file = Path(figure_output_path)
 
-    for path, desc in [
-        (test_file, "Test dataset"),
-        (mod_file, "Trained model artifact"),
-        (vec_file, "Fitted vectorizer artifact"),
-    ]:
-        if not path.is_file():
-            raise FileNotFoundError(
-                f"{desc} not found at '{path.resolve()}'. Please complete upstream pipeline stages first."
-            )
+    _verify_input_paths(
+        [
+            (test_file, "Test dataset"),
+            (mod_file, "Trained model artifact"),
+            (vec_file, "Fitted vectorizer artifact"),
+        ]
+    )
 
     logger.info(f"Loading held-out test data from '{test_file}'...")
     test_df = pd.read_parquet(test_file)
     if test_df.empty:
         raise ValueError("Test DataFrame is empty (0 samples).")
-    if "quality_label" not in test_df.columns:
-        raise ValueError("Test DataFrame missing 'quality_label' column.")
 
-    y_true = test_df["quality_label"].to_numpy(dtype=int)
+    target_col = target_column or ("domain" if "domain" in test_df.columns else "quality_label")
+    if target_col not in test_df.columns:
+        raise ValueError(f"Test DataFrame missing '{target_col}' column.")
+
+    y_true = test_df[target_col].to_numpy()
     fingerprint = compute_data_fingerprint(test_df)
 
     logger.info(f"Loading vectorizer from '{vec_file}'...")
@@ -253,13 +306,16 @@ def evaluate_model(
     clf = bundle["model"] if isinstance(bundle, dict) and "model" in bundle else bundle
 
     logger.info(f"Transforming {len(test_df)} test samples...")
-    x_test, _ = transform_features(test_df, vectorizer)
+    x_test, _ = transform_features(test_df, vectorizer, target_column=target_col)
 
     logger.info("Computing predictions on test set...")
     y_pred = clf.predict(x_test)
 
+    classes_list = _resolve_target_classes(clf, target_col, y_true, y_pred)
+
     # Compute evaluation metrics
-    results = compute_evaluation_metrics(y_true, y_pred, classes=ALL_CLASSES)
+    results = compute_evaluation_metrics(y_true, y_pred, classes=classes_list)
+    results["target_column"] = target_col
     results["n_test_samples"] = int(len(test_df))
     results["test_data_fingerprint"] = fingerprint
     results["misclassified_examples"] = extract_misclassified_examples(test_df, y_true, y_pred)
@@ -271,7 +327,7 @@ def evaluate_model(
     logger.info(f"Saved evaluation metrics to '{metrics_file}'.")
 
     # Plot confusion matrix
-    plot_confusion_matrix(results["confusion_matrix"], fig_file, classes=ALL_CLASSES)
+    plot_confusion_matrix(results["confusion_matrix"], fig_file, classes=classes_list)
 
     # MLflow Tracking
     if track_with_mlflow:
@@ -337,6 +393,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    params = load_params()
+    target_column = params.get("data", {}).get("target_column")
+
     evaluate_model(
         test_path=args.test_data,
         model_path=args.model,
@@ -344,6 +403,7 @@ def main() -> None:
         metrics_output_path=args.metrics_output,
         figure_output_path=args.figure_output,
         track_with_mlflow=True,
+        target_column=target_column,
     )
 
 
